@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 // import huella from './assets/huella.png';
 import * as ImagePicker from 'expo-image-picker';
+import * as Sharing from "expo-sharing";
 
 const styles = StyleSheet.create({
 	container: {
@@ -55,21 +56,36 @@ const App = () => {
 		setImageGallery({ localUri: selectedImage.uri });
 	};
 
+	// Funcion para compartir
+	const openShareDialog = async () =>{
+		const canShare = await Sharing.isAvailableAsync();
+
+		if (!canShare) {
+			alert('No se puede compartir en esta plataforma');
+			return;
+		}
+
+		await Sharing.shareAsync(imageGallery.localUri);
+	}
+
 	return (
 		<View style={styles.container}>
 			<Text style={styles.title}>Seleccioná una imagen</Text>
 
-			{/* Source soporta url web y local (importandolo) */}
-			<Image
-				source={{
-					uri:
+			{/* Se puede usar ambos tipos de botones (TouchableOpacity y Button), abrir la galeria */}
+			<TouchableOpacity onPress={openImagePickerAsync}>
+				{/* Source soporta url web y local (importandolo) */}
+				<Image
+					source={{
+						uri:
 						imageGallery !== null
-							? imageGallery.localUri
-							: 'https://picsum.photos/200/200',
-				}}
-				// source={huella}
-				style={styles.image}
-			/>
+						? imageGallery.localUri
+						: 'https://picsum.photos/200/200',
+					}}
+					// source={huella}
+					style={styles.image}
+				/>
+			</TouchableOpacity>
 
 			{/* Button para botón básico, y TouchableOpacity para uno personalizable */}
 			<Button
@@ -84,13 +100,14 @@ const App = () => {
 				onPress={() => setImageGallery(null)}
 			/>
 
-			{/* Se puede usar ambos tipos de botones, abrir la galeria */}
-			<TouchableOpacity
-				onPress={openImagePickerAsync}
+			{/* Compartir */}
+			{imageGallery ? 
+			<TouchableOpacity 
+				onPress={openShareDialog}
 				style={styles.button}
 			>
-				<Text style={styles.buttonText}>Acceder a la galería</Text>
-			</TouchableOpacity>
+				<Text style={styles.buttonText}>Compartir</Text>
+			</TouchableOpacity> : <View/>}
 		</View>
 	);
 };
