@@ -7,10 +7,12 @@ import {
 	Button,
 	Alert,
 	TouchableOpacity,
+	Platform,
 } from 'react-native';
 // import huella from './assets/huella.png';
 import * as ImagePicker from 'expo-image-picker';
 import * as Sharing from "expo-sharing";
+import UploadToAnonymousFilesAsync from "anonymous-files";
 
 const styles = StyleSheet.create({
 	container: {
@@ -52,8 +54,19 @@ const App = () => {
 			return;
 		}
 
-		// Guardar la imagen en el state de la app
-		setImageGallery({ localUri: selectedImage.uri });
+		// Validar si es web
+		if (Platform.OS === 'web') {
+			try {
+				const remoteURI = await UploadToAnonymousFilesAsync(selectedImage.uri);
+				// Guardo en el estado la imagen local y tambien la url remota donde se subio
+				setImageGallery({localUri: selectedImage.uri, remoteURI});
+			} catch (error) {
+				alert('El host de imagenes no se encuentra disponible');
+			}
+		}else{	
+			// Guardar la imagen en el state de la app
+			setImageGallery({ localUri: selectedImage.uri });
+		}
 	};
 
 	// Funcion para compartir
@@ -61,7 +74,7 @@ const App = () => {
 		const canShare = await Sharing.isAvailableAsync();
 
 		if (!canShare) {
-			alert('No se puede compartir en esta plataforma');
+			alert(`La imagen está disponible en: ${imageGallery.remoteURI}`);
 			return;
 		}
 
